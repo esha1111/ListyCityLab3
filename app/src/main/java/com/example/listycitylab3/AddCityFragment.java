@@ -12,16 +12,30 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
-
-import androidx.annotation.NonNull;
-
-import com.example.listycitylab3.City;
-
 public class AddCityFragment extends DialogFragment {
+
     interface AddCityDialogListener {
         void addCity(City city);
+        void cityUpdated();
     }
+
     private AddCityDialogListener listener;
+
+    private static final String ARG_CITY = "city";
+    private City city;
+
+    public AddCityFragment() {
+    }
+
+    public static AddCityFragment newInstance(City city) {
+        Bundle args = new Bundle();
+        args.putSerializable(ARG_CITY, city);
+
+        AddCityFragment fragment = new AddCityFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
@@ -31,21 +45,44 @@ public class AddCityFragment extends DialogFragment {
             throw new RuntimeException(context + " must implement AddCityDialogListener");
         }
     }
+
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        View view = LayoutInflater.from(getContext()).inflate(R.layout.fragment_add_city, null);
+
+        if (getArguments() != null) {
+            city = (City) getArguments().getSerializable(ARG_CITY);
+        }
+
+        View view = LayoutInflater.from(getContext())
+                .inflate(R.layout.fragment_add_city, null);
+
         EditText editCityName = view.findViewById(R.id.edit_text_city_text);
         EditText editProvinceName = view.findViewById(R.id.edit_text_province_text);
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        return builder
+
+        if (city != null) {
+            editCityName.setText(city.getName());
+            editProvinceName.setText(city.getProvince());
+        }
+
+        return new AlertDialog.Builder(getContext())
                 .setView(view)
-                .setTitle("Add a city")
+                .setTitle(city == null ? "Add City" : "Edit City")
                 .setNegativeButton("Cancel", null)
-                .setPositiveButton("Add", (dialog, which) -> {
-                    String cityName = editCityName.getText().toString();
-                    String provinceName = editProvinceName.getText().toString();
-                    listener.addCity(new City(cityName, provinceName));
+                .setPositiveButton("Save", (dialog, which) -> {
+                    if (city == null) {
+                        // ADD
+                        listener.addCity(
+                                new City(
+                                        editCityName.getText().toString(),
+                                        editProvinceName.getText().toString()
+                                )
+                        );
+                    } else {
+                        city.setName(editCityName.getText().toString());
+                        city.setProvince(editProvinceName.getText().toString());
+                        listener.cityUpdated();
+                    }
                 })
                 .create();
     }
