@@ -27,9 +27,9 @@ public class AddCityFragment extends DialogFragment {
     public AddCityFragment() {
     }
 
-    public static AddCityFragment newInstance(City city) {
+    static AddCityFragment newInstance(City city) {
         Bundle args = new Bundle();
-        args.putSerializable(ARG_CITY, city);
+        args.putSerializable("city", city);
 
         AddCityFragment fragment = new AddCityFragment();
         fragment.setArguments(args);
